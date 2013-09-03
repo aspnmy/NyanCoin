@@ -841,7 +841,7 @@ int static generateMTRandom(unsigned int s, int range)
 
 int64 static GetBlockValue(int nHeight, int64 nFees, uint256 prevHash)
 {
-		int64 nSubsidy = 1 * COIN;
+		int64 nSubsidy = 1 * COIN;  //random number of coins between 1 and 400
 
         std::string cseed_str = prevHash.ToString().substr(8,7);
 		const char* cseed = cseed_str.c_str();
