@@ -1,7 +1,7 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2011-2012 The Litecoin Developers
-// Copyright (c) 2013 adam m.
+// Copyright (c) 2013 The NyanCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -313,7 +313,7 @@ Value getdifficulty(const Array& params, bool fHelp)
 }
 
 
-// Litecoin: Return average network hashes per second based on last number of blocks.
+// NyanCoin: Return average network hashes per second based on last number of blocks.
 Value GetNetworkHashPS(int lookup) {
     if (pindexBest == NULL)
         return 0;
@@ -542,7 +542,7 @@ Value setaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "setaccount <NyanCoin address> <account>\n"
+            "setaccount <NyanCoinaddress> <account>\n"
             "Sets the account associated with the given address.");
 
     CBitcoinAddress address(params[0].get_str());
@@ -572,7 +572,7 @@ Value getaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "getaccount <NyanCoin address>\n"
+            "getaccount <NyanCoinaddress>\n"
             "Returns the account associated with the given address.");
 
     CBitcoinAddress address(params[0].get_str());
@@ -644,7 +644,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 4)
         throw runtime_error(
-            "sendtoaddress <NyanCoin address> <amount> [comment] [comment-to]\n"
+            "sendtoaddress <NyanCoinaddress> <amount> [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.00000001"
             + HelpRequiringPassphrase());
 
@@ -676,7 +676,7 @@ Value signmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "signmessage <NyanCoin address> <message>\n"
+            "signmessage <NyanCoinaddress> <message>\n"
             "Sign a message with the private key of an address");
 
     EnsureWalletIsUnlocked();
@@ -711,7 +711,7 @@ Value verifymessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-            "verifymessage <NyanCoin address> <signature> <message>\n"
+            "verifymessage <NyanCoinaddress> <signature> <message>\n"
             "Verify a signed message");
 
     string strAddress  = params[0].get_str();
@@ -748,8 +748,8 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "getreceivedbyaddress <NyanCoin address> [minconf=1]\n"
-            "Returns the total amount received by <NyanCoin address> in transactions with at least [minconf] confirmations.");
+            "getreceivedbyaddress <NyanCoinaddress> [minconf=1]\n"
+            "Returns the total amount received by <NyanCoinaddress> in transactions with at least [minconf] confirmations.");
 
     // NyanCoin address
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
@@ -969,7 +969,7 @@ Value sendfrom(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 6)
         throw runtime_error(
-            "sendfrom <fromaccount> <to NyanCoin address> <amount> [minconf=1] [comment] [comment-to]\n"
+            "sendfrom <fromaccount> <toNyanCoinaddress> <amount> [minconf=1] [comment] [comment-to]\n"
             "<amount> is a real and is rounded to the nearest 0.00000001"
             + HelpRequiringPassphrase());
 
@@ -1099,7 +1099,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     {
         const std::string& ks = keys[i].get_str();
 
-        // Case 1: NyanCoin address and we have full public key:
+        // Case 1:Testecoin address and we have full public key:
         CBitcoinAddress address(ks);
         if (address.IsValid())
         {
@@ -1833,8 +1833,8 @@ Value validateaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "validateaddress <NyanCoin address>\n"
-            "Return information about <NyanCoin address>.");
+            "validateaddress <NyanCoinaddress>\n"
+            "Return information about <NyanCoinaddress>.");
 
     CBitcoinAddress address(params[0].get_str());
     bool isValid = address.IsValid();
@@ -1860,6 +1860,8 @@ Value validateaddress(const Array& params, bool fHelp)
 
 Value getworkex(const Array& params, bool fHelp)
 {
+	printf(">>> In getworkex ....\n");
+
     if (fHelp || params.size() > 2)
         throw runtime_error(
             "getworkex [data, coinbase]\n"
@@ -1867,10 +1869,10 @@ Value getworkex(const Array& params, bool fHelp)
         );
 
     if (vNodes.empty())
-        throw JSONRPCError(-9, "NyanCoin server is not connected!");
+        throw JSONRPCError(-9, "NyanCoin is not connected!!!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "NyanCoin server is downloading blocks...");
+        throw JSONRPCError(-10, "NyanCoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;
@@ -1999,10 +2001,10 @@ Value getwork(const Array& params, bool fHelp)
             "If [data] is specified, tries to solve the block and returns true if it was successful.");
 
     if (vNodes.empty())
-        throw JSONRPCError(-9, "NyanCoin server is not connected!");
+        throw JSONRPCError(-9, "NyanCoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "NyanCoin server is downloading blocks...");
+        throw JSONRPCError(-10, "NyanCoin is downloading blocks...");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
     static mapNewBlock_t mapNewBlock;    // FIXME: thread safety
@@ -2062,7 +2064,7 @@ Value getwork(const Array& params, bool fHelp)
         result.push_back(Pair("data",     HexStr(BEGIN(pdata), END(pdata))));
         result.push_back(Pair("hash1",    HexStr(BEGIN(phash1), END(phash1)))); // deprecated
         result.push_back(Pair("target",   HexStr(BEGIN(hashTarget), END(hashTarget))));
-        result.push_back(Pair("algorithm", "scrypt:1024,1,1"));  // specify that we should use the scrypt algorithm
+        result.push_back(Pair("algorithm", "scrypt:1024,1,1"));  // NyanCoin: specify that we should use the scrypt algorithm
         return result;
     }
     else
@@ -2131,10 +2133,10 @@ Value getblocktemplate(const Array& params, bool fHelp)
     if (strMode == "template")
     {
         if (vNodes.empty())
-            throw JSONRPCError(-9, "NyanCoin server is not connected!");
+            throw JSONRPCError(-9, "NyanCoin is not connected!");
 
         if (IsInitialBlockDownload())
-            throw JSONRPCError(-10, "NyanCoin server is downloading blocks...");
+            throw JSONRPCError(-10, "NyanCoin is downloading blocks...");
 
         static CReserveKey reservekey(pwalletMain);
 
@@ -2844,7 +2846,7 @@ void ThreadRPCServer2(void* parg)
     {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
-        string strWhatAmI = "To use NyanCoin";
+        string strWhatAmI = "To use NyanCoind";
         if (mapArgs.count("-server"))
             strWhatAmI = strprintf(_("To use the %s option"), "\"-server\"");
         else if (mapArgs.count("-daemon"))

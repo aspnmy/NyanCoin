@@ -1,6 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2011-2012 Litecoin Developers
+// Copyright (c) 2013 NyanCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include "db.h"
@@ -123,7 +124,7 @@ bool AppInit(int argc, char* argv[])
         //
         // Parameters
         //
-        // If Qt is used, parameters/litecoin.conf are parsed in qt/bitcoin.cpp's main()
+        // If Qt is used, parameters/NyanCoin.conf are parsed in qt/bitcoin.cpp's main()
         ParseParameters(argc, argv);
         if (!boost::filesystem::is_directory(GetDataDir(false)))
         {
@@ -134,13 +135,13 @@ bool AppInit(int argc, char* argv[])
 
         if (mapArgs.count("-?") || mapArgs.count("--help"))
         {
-            // First part of help message is specific to NyanCoin server / RPC client
+            // First part of help message is specific to NyanCoind / RPC client
             std::string strUsage = _("NyanCoin version") + " " + FormatFullVersion() + "\n\n" +
                 _("Usage:") + "\n" +
-                  "  NyanCoin [options]                     " + "\n" +
-                  "  NyanCoin [options] <command> [params]  " + _("Send command to -server or NyanCoin") + "\n" +
-                  "  NyanCoin [options] help                " + _("List commands") + "\n" +
-                  "  NyanCoin [options] help <command>      " + _("Get help for a command") + "\n";
+                  "  NyanCoind [options]                     " + "\n" +
+                  "  NyanCoind [options] <command> [params]  " + _("Send command to -server or NyanCoind") + "\n" +
+                  "  NyanCoind [options] help                " + _("List commands") + "\n" +
+                  "  NyanCoind [options] help <command>      " + _("Get help for a command") + "\n";
 
             strUsage += "\n" + HelpMessage();
 
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
 {
     bool fRet = false;
 
-    // Connect signal handlers
+    // Connect NyanCoind signal handlers
     noui_connect();
 
     fRet = AppInit(argc, argv);
@@ -213,15 +214,12 @@ bool static Bind(const CService &addr, bool fError = true) {
     return true;
 }
 
-/* import from bitcoinrpc.cpp */
-extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
-
 // Core-specific options shared between UI and daemon
 std::string HelpMessage()
 {
     string strUsage = _("Options:") + "\n" +
         "  -conf=<file>           " + _("Specify configuration file (default: NyanCoin.conf)") + "\n" +
-        "  -pid=<file>            " + _("Specify pid file (default: NyanCoin.pid)") + "\n" +
+        "  -pid=<file>            " + _("Specify pid file (default: NyanCoind.pid)") + "\n" +
         "  -gen                   " + _("Generate coins") + "\n" +
         "  -gen=0                 " + _("Don't generate coins") + "\n" +
         "  -datadir=<dir>         " + _("Specify data directory") + "\n" +
@@ -232,7 +230,7 @@ std::string HelpMessage()
         "  -socks=<n>             " + _("Select the version of socks proxy to use (4-5, default: 5)") + "\n" +
         "  -tor=<ip:port>         " + _("Use proxy to reach tor hidden services (default: same as -proxy)") + "\n"
         "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + "\n" +
-        "  -port=<port>           " + _("Listen for connections on <port> (default: 3141 or testnet: 5926)") + "\n" +
+        "  -port=<port>           " + _("Listen for connections on <port> (default: 3141 or testnet: 23580)") + "\n" +
         "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n" +
         "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n" +
         "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n" +
@@ -248,7 +246,13 @@ std::string HelpMessage()
         "  -bantime=<n>           " + _("Number of seconds to keep misbehaving peers from reconnecting (default: 86400)") + "\n" +
         "  -maxreceivebuffer=<n>  " + _("Maximum per-connection receive buffer, <n>*1000 bytes (default: 5000)") + "\n" +
         "  -maxsendbuffer=<n>     " + _("Maximum per-connection send buffer, <n>*1000 bytes (default: 1000)") + "\n" +
-
+#ifdef USE_UPNP
+#if USE_UPNP
+        "  -upnp                  " + _("Use UPnP to map the listening port (default: 1 when listening)") + "\n" +
+#else
+        "  -upnp                  " + _("Use UPnP to map the listening port (default: 0)") + "\n" +
+#endif
+#endif
         "  -detachdb              " + _("Detach block and address databases. Increases shutdown time (default: 0)") + "\n" +
         "  -paytxfee=<amt>        " + _("Fee per KB to add to transactions you send") + "\n" +
         "  -mininput=<amt>        " + _("When creating transactions, ignore inputs with value less than this (default: 0.0001)") + "\n" +
@@ -328,7 +332,7 @@ bool AppInit2()
     // ********************************************************* Step 2: parameter interactions
 
     fTestNet = GetBoolArg("-testnet");
-    // Keep irc seeding on by default for now.
+    // NyanCoin: Keep irc seeding on by default for now.
 //    if (fTestNet)
 //    {
         SoftSetBoolArg("-irc", true);
@@ -525,7 +529,9 @@ bool AppInit2()
     fNoListen = !GetBoolArg("-listen", true);
     fDiscover = GetBoolArg("-discover", true);
     fNameLookup = GetBoolArg("-dns", true);
-
+#ifdef USE_UPNP
+    fUseUPnP = GetBoolArg("-upnp", USE_UPNP);
+#endif
 
     bool fBound = false;
     if (!fNoListen)
@@ -617,32 +623,6 @@ bool AppInit2()
         }
         if (nFound == 0)
             printf("No blocks matching %s were found\n", strMatch.c_str());
-        return false;
-    }
-
-    if (mapArgs.count("-exportStatData"))
-    {
-        FILE* file = fopen((GetDataDir() / "blockstat.dat").string().c_str(), "w");
-        if (!file)
-           return false;
-        
-        for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
-        {
-            CBlockIndex* pindex = (*mi).second;
-            CBlock block;
-            block.ReadFromDisk(pindex);
-            block.BuildMerkleTree();
-            fprintf(file, "%d,%s,%s,%d,%f,%u\n",
-                pindex->nHeight, /* todo: height */
-                block.GetHash().ToString().c_str(),
-                block.GetPoWHash().ToString().c_str(),
-                block.nVersion,
-                //CBigNum().SetCompact(block.nBits).getuint256().ToString().c_str(),
-                GetDifficulty(pindex),
-                block.nTime
-            );
-        }
-        fclose(file);
         return false;
     }
 

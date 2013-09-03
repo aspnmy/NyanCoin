@@ -1,25 +1,35 @@
+
 TEMPLATE = app
 TARGET =
 VERSION = 0.6.3
 INCLUDEPATH += src src/json src/qt
-DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE BOOST_THREAD_PROVIDES_GENERIC_SHARED_MUTEX_ON_WIN __NO_SYSTEM_INCLUDES
+DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_IPV6
 CONFIG += no_include_pwd
 
-# UNCOMMENT THIS SECTION TO BUILD ON WINDOWS
-# Change paths if needed, these use the NyanCoin/deps.git repository locations
+# for boost 1.37, add -mt to the boost libraries
+# use: qmake BOOST_LIB_SUFFIX=-mt
+# for boost thread win32 with _win32 sufix
+# use: BOOST_THREAD_LIB_SUFFIX=_win32-...
+# or when linking against a specific BerkelyDB version: BDB_LIB_SUFFIX=-4.8
 
-#windows:LIBS += -lshlwapi
-#LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-#LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
-#windows:LIBS += -lws2_32 -lole32 -loleaut32 -luuid -lgdi32
-#LIBS += -lboost_system-mgw46-mt-sd-1_53 -lboost_filesystem-mgw46-mt-sd-1_53 -lboost_program_options-mgw46-mt-sd-1_53 -lboost_thread-mgw46-mt-sd-1_53
-#BOOST_LIB_SUFFIX=-mgw46-mt-sd-1_53
-#BOOST_INCLUDE_PATH=C:/deps/boost
-#BOOST_LIB_PATH=C:/deps/boost/stage/lib
-#BDB_INCLUDE_PATH=c:/deps/db/build_unix
-#BDB_LIB_PATH=c:/deps/db/build_unix
-#OPENSSL_INCLUDE_PATH=c:/deps/ssl/include
-#OPENSSL_LIB_PATH=c:/deps/ssl
+# Dependency library locations can be customized with:
+#    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
+#    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
+# Change following your build environment
+# I am using mingw to build
+windows:LIBS += -lshlwapi
+LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
+LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
+windows:LIBS += -lws2_32 -lole32 -loleaut32 -luuid -lgdi32
+LIBS += -lboost_system-mgw46-mt-sd-1_53 -lboost_filesystem-mgw46-mt-sd-1_53 -lboost_program_options-mgw46-mt-sd-1_53 -lboost_thread-mgw46-mt-sd-1_53
+BOOST_LIB_SUFFIX=-mgw46-mt-sd-1_53
+BOOST_INCLUDE_PATH=C:/deps/boost
+BOOST_LIB_PATH=C:/deps/boost/stage/lib
+BDB_INCLUDE_PATH=c:/deps/db/build_unix
+BDB_LIB_PATH=c:/deps/db/build_unix
+OPENSSL_INCLUDE_PATH=c:/deps/ssl/include
+OPENSSL_LIB_PATH=c:/deps/ssl
+
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
@@ -37,17 +47,29 @@ contains(RELEASE, 1) {
     }
 }
 
-# qmake "USE_UPNP=-" (not supported)
-contains(USE_UPNP, -) {
-    message(Building without UPNP support)
-}
-
 # use: qmake "USE_QRCODE=1"
 # libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
 contains(USE_QRCODE, 1) {
     message(Building with QRCode support)
     DEFINES += USE_QRCODE
     LIBS += -lqrencode
+}
+
+# use: qmake "USE_UPNP=1" ( enabled by default; default)
+#  or: qmake "USE_UPNP=0" (disabled by default)
+#  or: qmake "USE_UPNP=-" (not supported)
+# miniupnpc (http://miniupnp.free.fr/files/) must be installed for support
+contains(USE_UPNP, -) {
+    message(Building without UPNP support)
+} else {
+    message(Building with UPNP support)
+    count(USE_UPNP, 0) {
+        USE_UPNP=1
+    }
+    DEFINES += USE_UPNP=$$USE_UPNP STATICLIB
+    INCLUDEPATH += $$MINIUPNPC_INCLUDE_PATH
+    LIBS += $$join(MINIUPNPC_LIB_PATH,,-L,) -lminiupnpc
+    win32:LIBS += -liphlpapi
 }
 
 # use: qmake "USE_DBUS=1"
@@ -85,7 +107,7 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
     DEFINES += HAVE_BUILD_INFO
 }
 
-QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter
+QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter  -D__NO_SYSTEM_INCLUDES
 
 # Input
 DEPENDPATH += src src/json src/qt
@@ -281,7 +303,7 @@ OTHER_FILES += \
 # platform specific defaults, if not overridden on command line
 isEmpty(BOOST_LIB_SUFFIX) {
     macx:BOOST_LIB_SUFFIX = -mt
-    windows:BOOST_LIB_SUFFIX = -mgw44-mt-s-1_49
+    windows:BOOST_LIB_SUFFIX = -mgw45-mt-d-1_53
 }
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {
@@ -333,14 +355,16 @@ macx:OBJECTIVE_SOURCES += src/qt/macdockiconhandler.mm
 macx:LIBS += -framework Foundation -framework ApplicationServices -framework AppKit
 macx:DEFINES += MAC_OSX MSG_NOSIGNAL=0
 macx:ICON = src/qt/res/icons/bitcoin.icns
-macx:TARGET = "NyanCoin-qt"
+macx:TARGET = "NyanCoin-Qt"
 
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
+LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -loleaut32
 # -lgdi32 has to happen after -lcrypto (see  #681)
-windows:LIBS += -lole32 -luuid -lgdi32
+windows:LIBS += -lole32 -luuid -lgdi32 
+LIBS += C:\MinGW\lib\libws2_32.a
+LIBS += C:\MinGW\lib\liboleaut32.a
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX
 
 contains(RELEASE, 1) {

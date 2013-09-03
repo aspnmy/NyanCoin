@@ -2,26 +2,18 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file license.txt or http://www.opensource.org/licenses/mit-license.php.
 
-USE_UPNP:=0
+USE_UPNP:=
+BOOST_SUFFIX?=
 
 INCLUDEPATHS= \
- -I"C:\deps\boost" \
- -I"C:\deps\db\build_unix" \
- -I"C:\deps\ssl\include"
+ -I"$(CURDIR)" \
+
 
 LIBPATHS= \
- -L"C:\deps\boost\stage\lib" \
- -L"C:\deps\db\build_unix" \
- -L"C:\deps\ssl"
+
 
 LIBS= \
- -l boost_system-mgw46-mt-s-1_49 \
- -l boost_filesystem-mgw46-mt-s-1_49 \
- -l boost_program_options-mgw46-mt-s-1_49 \
- -l boost_thread-mgw46-mt-s-1_49 \
- -l db_cxx \
- -l ssl \
- -l crypto
+
 
 DEFS=-DWIN32 -D_WINDOWS -DBOOST_THREAD_USE_LIB -DBOOST_SPIRIT_THREADSAFE -DUSE_IPV6 -D__NO_SYSTEM_INCLUDES
 DEBUGFLAGS=-g
@@ -29,7 +21,11 @@ CFLAGS=-mthreads -O2 -w -Wall -Wextra -Wformat -Wformat-security -Wno-unused-par
 
 TESTDEFS = -DTEST_DATA_DIR=$(abspath test/data)
 
-
+ifdef USE_UPNP
+ LIBPATHS += -L"C:\upnpc-exe-win32"
+ LIBS += -l miniupnpc -l iphlpapi
+ DEFS += -DSTATICLIB -DUSE_UPNP=$(USE_UPNP)
+endif
 
 LIBS += -l kernel32 -l user32 -l gdi32 -l comdlg32 -l winspool -l winmm -l shell32 -l comctl32 -l ole32 -l oleaut32 -l uuid -l rpcrt4 -l advapi32 -l ws2_32 -l mswsock -l shlwapi
 
@@ -63,7 +59,7 @@ OBJS= \
     obj/noui.o
 
 
-all: NyanCoin.exe
+all: nyancoind.exe
 
 obj/scrypt.o: scrypt.c
 	gcc -c $(CFLAGS) -o $@ $^
@@ -71,7 +67,7 @@ obj/scrypt.o: scrypt.c
 obj/%.o: %.cpp $(HEADERS)
 	g++ -c $(CFLAGS) -o $@ $<
 
-NyanCoin.exe: $(OBJS:obj/%=obj/%)
+nyancoind.exe: $(OBJS:obj/%=obj/%)
 	g++ $(CFLAGS) -o $@ $(LIBPATHS) $^ $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -79,11 +75,11 @@ TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 obj-test/%.o: test/%.cpp $(HEADERS)
 	g++ -c $(TESTDEFS) $(CFLAGS) -o $@ $<
 
-test_NyanCoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
-	g++ $(CFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework $(LIBS)
+test_nyancoin.exe: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+	g++ $(CFLAGS) -o $@ $(LIBPATHS) $^ -lboost_unit_test_framework-mgw45-mt-d-1_53 $(LIBS)
 
 clean:
-	-del /Q NyanCoin test_NyanCoin
-	-del /Q obj\*
-	-del /Q obj-test\*
-	-del /Q build.h
+	rm -f nyancoind.exe test_nyancoin.exe
+	rm -f obj/*.o
+	rm -f obj-test/*.o
+	rm -f build.h

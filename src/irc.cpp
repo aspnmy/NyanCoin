@@ -1,6 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2011-2012 Litecoin Developers
+// Copyright (c) 2013 NyanCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -294,14 +295,14 @@ void ThreadIRCSeed2(void* parg)
         }
         
         if (fTestNet) {
-            Send(hSocket, "JOIN #NyanCoin2TEST3\r");
-            Send(hSocket, "WHO #NyanCoin2TEST3\r");
+            Send(hSocket, "JOIN #NyanCoinTEST3\r");
+            Send(hSocket, "WHO #NyanCoinTEST3\r");
         } else {
             // randomly join #NyanCoin00-#NyanCoin99
             int channel_number = GetRandInt(100);
-            channel_number = 0; // Litecoin: for now, just use one channel
-            Send(hSocket, strprintf("JOIN #NyanCoin2%02d\r", channel_number).c_str());
-            Send(hSocket, strprintf("WHO #NyanCoin2%02d\r", channel_number).c_str());
+            channel_number = 0; // NyanCoin: for now, just use one channel
+            Send(hSocket, strprintf("JOIN #NyanCoin%02d\r", channel_number).c_str());
+            Send(hSocket, strprintf("WHO #NyanCoin%02d\r", channel_number).c_str());
         }
 
         int64 nStart = GetTime();
