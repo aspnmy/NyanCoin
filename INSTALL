@@ -1,9 +1,0 @@
-Building NyanCoin
-
-See doc/readme-qt.rst for instructions on building NyanCoin-QT,
-the intended-for-end-users, nice-graphical-interface, reference
-implementation of Junkcoin.
-
-See doc/build-*.txt for instructions on building NyanCoind,
-the intended-for-services, no-graphical-interface, reference
-implementation of NyanCoin.
